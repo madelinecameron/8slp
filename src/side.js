@@ -47,6 +47,10 @@ class EightSleepSide {
     })
   }
 
+  whoami() {
+    return this.side
+  }
+
   /**
    * Set heating / cooling level of side
    *
