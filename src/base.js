@@ -5,7 +5,13 @@ const $token = Symbol(`token`)
 const $tokenExpire = Symbol(`token-expire`)
 const $globalCache = Symbol(`global-cache`)
 
+/** Overall class for API */
 class EightSleepBase {
+  /**
+   * @constructor
+   *
+   * @param {string} tz Timezone (eg: 'America/New_York') to use for responses
+   */
   constructor(tz) {
     this[$globalCache] = {
       userIds: [],
@@ -24,6 +30,15 @@ class EightSleepBase {
     this.me = notAuthenticated
   }
 
+  /**
+   * @private
+   * Wrapped function for sending requests to Eight Sleep
+   *
+   * @param {object} opts
+   * @param {string} opts.url EightSleep endpoint url
+   * @param {string} opts.method HTTP Verb to use
+   * @param {object} opts.body JSON body to send
+   */
   async _makeRequest({
     url,
     method,
@@ -36,6 +51,12 @@ class EightSleepBase {
     })
   }
 
+  /**
+   * Authenticate with EightSleep API
+   *
+   * @param {string} email Email of EightSleep account
+   * @param {string} password Password of EightSleep account
+   */
   async authenticate(email, password) {
     const {
       session: {
@@ -55,6 +76,11 @@ class EightSleepBase {
     await this.getSides()
   }
 
+  /**
+   * Get basic info about both sides of the bed
+   *
+   * @returns {[ leftUserId, rightUserId ]} Array of user IDs
+   */
   async getSides() {
     const deviceId = this.cache.get(`deviceId`)
 
@@ -91,6 +117,11 @@ class EightSleepBase {
     return this.cache.get(`userIds`)
   }
 
+  /**
+   * Get the active device ID on the account
+   *
+   * @returns {string} Device ID
+   */
   async currentDeviceId() {
     const {
       user: {

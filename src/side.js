@@ -8,11 +8,11 @@ class EightSleepSide {
   /**
    * Instantiate instance of one side of the bed
    *
-   * @param {string} token Token received from login
-   * @param {string} userId User ID for this side of the bed
-   * @param {string} side Which side of the bed is this
+   * @param {object} opts
+   * @param {string} opts.userId User ID for this side of the bed
+   * @param {object} opts.globalCache Object representing global cache, shared between both sides and base
    */
-  constructor({ userId, globalCache, tz }) {
+  constructor({ userId, globalCache }) {
     this.cache = new utils.Cache(globalCache, userId)
 
     this[$token] = this.cache.get(`token`)
@@ -26,6 +26,15 @@ class EightSleepSide {
     this.deviceId = this.cache.get(`deviceId`)
   }
 
+  /**
+   * @private
+   * Wrapped function for sending requests to Eight Sleep
+   *
+   * @param {object} opts
+   * @param {string} opts.url EightSleep endpoint url
+   * @param {string} opts.method HTTP Verb to use
+   * @param {object} opts.body JSON body to send
+   */
   async _makeRequest({
     url,
     method,
@@ -38,6 +47,12 @@ class EightSleepSide {
     })
   }
 
+  /**
+   * Set heating / cooling level of side
+   *
+   * @param {number} level 0 - 100 level of heating
+   * @param {number} duration Duration in seconds of level
+   */
   async setLevel(level, duration) {
     const normalizedLevel = Math.max(0, Math.min(level, 100))
 
@@ -54,21 +69,38 @@ class EightSleepSide {
     })
   }
 
-  // TODO To be tested
-  isHeating({ force = false } = {}) {
+  /**
+   * Check if side is active
+   *
+   * @returns {boolean} Whether side is currently on
+   */
+  isHeating() {
     return this.cache.userGet(`nowHeating`)
   }
 
-  // TODO to be tested
+  /**
+   * Check heating / cooling level target
+   *
+   * @returns {number} 0 - 100 target level
+   */
   targetLevel() {
-    return this._userCahceGet(`targetHeatingLevel`)
+    return this.cache.userGet(`targetHeatingLevel`)
   }
 
-  // TODO to be tested
+  /**
+   * Check when side last detected someone laying
+   *
+   * @returns {string} ISO-8601 datestring of last time
+   */
   lastSeen() {
-    return this._cacheGet(`presenceEnd`)
+    return this.cache.userGet(`presenceEnd`)
   }
 
+  /**
+   * Current status of this side
+   *
+   * @returns {object} Status of side (`targetHeatingLevel`, `heatingLevel`, `heatingDuration`, `nowHeating`, `presenceEnd`)
+   */
   status() {
     const keys = [
       `targetHeatingLevel`,
@@ -85,6 +117,14 @@ class EightSleepSide {
     return { ...status }
   }
 
+  /**
+   * Return data for current session or a session specified by date
+   *
+   * @param {object} opts
+   * @param {string} [opts.date] ISO-8601 datestring of desired session
+   *
+   * @returns {object} Session info
+   */
   session({ date = null }) {
     if (!date) {
       return this.cache.userGet(`currentSession`)
@@ -97,6 +137,11 @@ class EightSleepSide {
     })
   }
 
+  /**
+   * Current stage of sleep (only works with active session)
+   *
+   * @returns {string} Current sleep stage
+   */
   sleepStage() {
     // Is not active session
     if (!this.isHeating()) {
@@ -121,6 +166,14 @@ class EightSleepSide {
     return getSleepStage()
   }
 
+  /**
+   * @private
+   * Retrieve data from timeseries' from cached information for current session
+   *
+   * @param {string} key Key of `timeseries` array
+   *
+   * @returns {array} Array of timeseries info
+   */
   _getIntervalsInfo(key) {
     if (!this.isHeating()) {
       return null
@@ -142,6 +195,11 @@ class EightSleepSide {
     return getInfo()
   }
 
+  /**
+   * Retrieve latest room temp for current session
+   *
+   * @returns {[ date, roomTempC, roomTempF ]} Current room temp in Farenheit
+   */
   roomTemp() {
     // TODO Convert to F
     const roomTempC = this._getIntervalsInfo(`roomTempC`)
@@ -149,6 +207,11 @@ class EightSleepSide {
     return roomTempC
   }
 
+  /**
+   * Retrieve latest bed temp for current session
+   *
+   * @returns {[ date, bedTempC, bedTempF ]} Bed temperature event
+   */
   bedTemp() {
     // TODO Convert to F
     const bedTempC = this._getIntervalsInfo(`bedTempC`)
@@ -156,26 +219,57 @@ class EightSleepSide {
     return bedTempC
   }
 
+  /**
+   * Retrieve latest toss-and-turns event for current session
+   *
+   * @returns {[ date, tossandturns ]} Toss and turns event
+   */
   tossAndTurns() {
     return this._getIntervalsInfo(`tnt`)
   }
 
+  /**
+   * Retrieve latest heart rate event for current session
+   *
+   * @returns {[ date, heartRate ]} Heart rate event
+   */
   heartRate() {
     return this._getIntervalsInfo(`heartRate`)
   }
 
+  /**
+   * Retrieve latest heart rate variability for current session
+   *
+   * @returns {[ date, hrv ]} Heart rate variability event
+   */
   heartRateVariability() {
     return this._getIntervalsInfo(`hrv`)
   }
 
+  /**
+   * Retrieve latest respiratory rate for current session
+   *
+   * @returns {[ date, respiratoryRate ]} Respiratory rate event
+   */
   respiratoryRate() {
     return this._getIntervalsInfo(`respiratoryRate`)
   }
 
+  /**
+   * Literally no clue
+   */
   rmssd() {
     return this._getIntervalsInfo(`rmssd`)
   }
 
+  /**
+   * Retrieve sleep scores for given session
+   *
+   * @param {object} opts
+   * @param {string} [opts.date] Datestring of desired session
+   *
+   * @returns {object} Session object
+   */
   scores({ date = null } = {}) {
     function getScores() {
       let session
@@ -208,6 +302,14 @@ class EightSleepSide {
     return getScores(date)
   }
 
+  /**
+   * Retrieve total sleep breakdown for given session
+   *
+   * @param {object} opts
+   * @param {string} opts.date Datestring of desired session
+   *
+   * @returns {object} Map of sleep stages and total duration
+   */
   sleepBreakdown({ date = null } = {}) {
     let session
     if (!date) {
@@ -236,16 +338,31 @@ class EightSleepSide {
     })
   }
 
+  /**
+   * Retrieve previous session
+   *
+   * @returns {object} Session object of previous session
+   */
   previousSession() {
     return this.cache.userGet(`previousSession`)
   }
 
+  /**
+   * @private
+   * Refresh data for both sides of the bed
+   */
   async _refresh() {
     await this._pullDeviceData()
     await this._pullIntervals()
     await this._pullTrends()
   }
 
+  /**
+   * @private
+   * Refresh intervals info and persist in cache
+   *
+   * @returns {object} Intervals object
+   */
   async _pullIntervals() {
     const { intervals } = await this._makeRequest({
       url: `users/${this.userId}/intervals`,
@@ -276,6 +393,12 @@ class EightSleepSide {
     return intervals
   }
 
+  /**
+   * @private
+   * Refresh trends info and persist in cache
+   *
+   * @returns {object} Trends object
+   */
   async _pullTrends() {
     const { days } = await this._makeRequest({
       url: `users/${this.userId}/trends`,
@@ -312,6 +435,12 @@ class EightSleepSide {
     return days
   }
 
+  /**
+   * @private
+   * Refresh device data and persist in cache
+   *
+   * @returns {object} Device data object
+   */
   async _pullDeviceData() {
     function formatSideKey(key, side) {
       const removedSide = key.replace(side, ``)
