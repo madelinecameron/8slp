@@ -1,4 +1,4 @@
-# js-eight-sleep
+# 8slp
 
 Client for unpublished EightSleep API.
 
