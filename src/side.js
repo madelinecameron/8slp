@@ -356,10 +356,9 @@ class EightSleepSide {
   }
 
   /**
-   * @private
    * Refresh data for both sides of the bed
    */
-  async _refresh() {
+  async refresh() {
     await this._pullDeviceData()
     await this._pullIntervals()
     await this._pullTrends()
