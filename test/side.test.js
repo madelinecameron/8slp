@@ -240,7 +240,7 @@ describe('side', () => {
     })
 
     it('should get merge all data together', async () => {
-      await eight.me._refresh()
+      await eight.me.refresh()
 
       const user = eight.me.cache.get(eight.me.userId)
       const currentSession = eight.me.cache.userGet(`currentSession`)
