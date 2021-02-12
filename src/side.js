@@ -206,9 +206,11 @@ class EightSleepSide {
    */
   roomTemp() {
     // TODO Convert to F
-    const roomTempC = this._getIntervalsInfo(`roomTempC`)
+    const [ date, roomTempC ] = this._getIntervalsInfo(`roomTempC`)
 
-    return roomTempC
+    const roomTempF = (roomTempC * 1.8) + 32
+
+    return [ date, roomTempC, roomTempF ]
   }
 
   /**
@@ -218,9 +220,11 @@ class EightSleepSide {
    */
   bedTemp() {
     // TODO Convert to F
-    const bedTempC = this._getIntervalsInfo(`bedTempC`)
+    const [ date, bedTempC ] = this._getIntervalsInfo(`bedTempC`)
 
-    return bedTempC
+    const bedTempF = (bedTempC * 1.8) + 32
+
+    return [ date, bedTempC, bedTempF ]
   }
 
   /**
