@@ -276,7 +276,7 @@ class EightSleepSide {
    * @param {object} opts
    * @param {string} [opts.date] Datestring of desired session
    *
-   * @returns {object} Session object
+   * @returns {{ score, sleepFitnessScore }} Sleep scores
    */
   scores({ date = null } = {}) {
     function getScores() {
