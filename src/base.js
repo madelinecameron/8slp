@@ -1,3 +1,4 @@
+const { URLSearchParams } = require('url')
 const utils = require(`./utils`)
 const EightSleepSide = require(`./side`)
 
@@ -42,15 +43,28 @@ class EightSleepBase {
   async _makeRequest({
     url,
     method,
+    contentType,
     body,
   }) {
     return utils.makeRequest({
       url,
       method,
-      token: this[$token],
+      body,
+      contentType,
+      token: this.cache.get(`token.token`)
     })
   }
 
+  async authenticateWithToken(token, expirationDate) {
+    if (!token || !expirationDate) {
+      throw new Error(`Make sure to include token and expirationDate`)
+    }
+
+    this.cache.put(`token`, { token, expirationDate })
+
+    await this.currentDeviceId()
+    await this.getSides({ loadUserData: false })
+  }
   /**
    * Authenticate with EightSleep API
    *
@@ -58,22 +72,33 @@ class EightSleepBase {
    * @param {string} password Password of EightSleep account
    */
   async authenticate(email, password) {
-    const {
-      session: {
-        token,
-        expirationDate,
-        userId,
-      },
-    } = await this._makeRequest({
-      url: `login?email=${email}&password=${password}`,
-      method: `POST`,
-    })
+    try {
+      const params = new URLSearchParams()
+      params.append('email', email)
+      params.append('password', password)
+      const {
+        session: {
+          token,
+          expirationDate,
+          userId,
+        },
+      } = await this._makeRequest({
+        url: `login`,
+        method: `POST`,
+        contentType: `application/x-www-form-urlencoded`,
+        body: params,
+      })
 
-    this.cache.put(`token`, { token, expirationDate })
-    this.cache.put(`loggedInUserId`, userId)
+      this.cache.put(`token`, { token, expirationDate })
+      this.cache.put(`loggedInUserId`, userId)
 
-    await this.currentDeviceId()
-    await this.getSides()
+      await this.currentDeviceId()
+      await this.getSides({ loadUserData: true })
+
+      return { token, expirationDate }
+    } catch (error) {
+      console.error(`Error occurred authenticating:`, error)
+    }
   }
 
   /**
@@ -81,7 +106,7 @@ class EightSleepBase {
    *
    * @returns {[ leftUserId, rightUserId ]} Array of user IDs
    */
-  async getSides() {
+  async getSides({ loadUserData = false } = {}) {
     const deviceId = this.cache.get(`deviceId`)
 
     const {
@@ -112,6 +137,14 @@ class EightSleepBase {
       this.me = this.left
     } else {
       this.me = this.right
+    }
+
+    if (loadUserData) {
+      // `refresh` loads data for both sides, regardless of which calls it.
+      //
+      // The data is persisted in the global cache so `me`, `left` and `right`
+      // can access the refreshed data.
+      await this.me.refresh()
     }
 
     return this.cache.get(`userIds`)

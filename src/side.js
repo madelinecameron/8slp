@@ -43,7 +43,8 @@ class EightSleepSide {
     return utils.makeRequest({
       url,
       method,
-      token: this[$token],
+      body,
+      token: this.cache.get(`token.token`),
     })
   }
 
@@ -54,11 +55,13 @@ class EightSleepSide {
   /**
    * Set heating / cooling level of side
    *
-   * @param {number} level 0 - 100 level of heating
+   * @param {number} level -100 to 100 level of heating
    * @param {number} duration Duration in seconds of level
    */
   async setLevel(level, duration) {
-    const normalizedLevel = Math.max(0, Math.min(level, 100))
+    const normalizedLevel = Math.max(-100, Math.min(level, 100))
+
+    const { side, deviceId } = this
 
     const data = {
       [`${side}TargetHeatingLevel`]: level,
@@ -66,10 +69,10 @@ class EightSleepSide {
     }
 
     // TODO Update cache?
-    return makeRequest({
+    return this._makeRequest({
       url: `devices/${deviceId}`,
       method: `PUT`,
-      token: this[$token],
+      body: JSON.stringify(data),
     })
   }
 
@@ -129,7 +132,7 @@ class EightSleepSide {
    *
    * @returns {object} Session info
    */
-  session({ date = null }) {
+  session({ date = null } = {}) {
     if (!date) {
       return this.cache.userGet(`currentSession`)
     }
@@ -408,7 +411,7 @@ class EightSleepSide {
    */
   async _pullTrends() {
     const { days } = await this._makeRequest({
-      url: `users/${this.userId}/trends`,
+      url: `users/${this.userId}/trends?tz=${this.tz}&to=${moment().subtract(1, `day`).format()}&from=${moment().format()}`,
       token: this[$token],
     })
 
