@@ -1,5 +1,5 @@
-const moment = require(`moment-timezone`)
-const utils = require(`./utils`)
+const moment = require('moment-timezone')
+const utils = require('./utils')
 
 const $token = Symbol(`token`)
 

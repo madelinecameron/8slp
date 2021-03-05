@@ -1,4 +1,4 @@
-const fetch = require(`node-fetch`)
+const fetch = require('node-fetch')
 
 const EIGHT_SLEEP_API = `https://client-api.8slp.net/v1`
 
