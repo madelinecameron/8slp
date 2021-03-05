@@ -1,6 +1,6 @@
 const { URLSearchParams } = require('url')
-const utils = require(`./utils`)
-const EightSleepSide = require(`./side`)
+const utils = require('./utils')
+const EightSleepSide = require('./side')
 
 const $token = Symbol(`token`)
 const $tokenExpire = Symbol(`token-expire`)

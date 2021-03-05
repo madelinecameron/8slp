@@ -1,5 +1,5 @@
-const makeRequest = require(`./make-request`)
-const Cache = require(`./cache`)
+const makeRequest = require('./make-request')
+const Cache = require('./cache')
 
 module.exports = {
   makeRequest,
