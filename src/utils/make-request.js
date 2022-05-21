@@ -9,7 +9,6 @@ async function makeRequest({
   body = null,
   contentType = `application/json`,
 }) {
-  console.log("OPTS:", arguments)
   const response = await fetch(`${EIGHT_SLEEP_API}/${url}`, {
     method,
     headers: {
@@ -20,7 +19,6 @@ async function makeRequest({
     body,
   })
 
-  console.log("RESP:", response)
   return response.json()
 }
 
