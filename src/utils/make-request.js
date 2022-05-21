@@ -10,7 +10,7 @@ async function makeRequest({
   contentType = `application/json`,
 }) {
   const response = await fetch(`${EIGHT_SLEEP_API}/${url}`, {
-    method,
+    method: method || `GET`,
     headers: {
       [`Content-Type`]: contentType,
       [`Session-Token`]: token,
