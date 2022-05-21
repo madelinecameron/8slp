@@ -64,13 +64,12 @@ class EightSleepSide {
     const { side, deviceId } = this
 
     const data = {
-      [`${side}TargetHeatingLevel`]: level,
-      [`${side}HeatingDuration`]: duration,
+      currentLevel: level,
     }
 
     // TODO Update cache?
     return this._makeRequest({
-      url: `devices/${deviceId}`,
+      url: `users/${this.userId}/temperature`,
       method: `PUT`,
       body: JSON.stringify(data),
     })

@@ -1,3 +1,5 @@
+# NOTICE: EightSleep broke this a bit by improving their API. Looks great, just haven't adapted everything yet, only setting the temperature.
+
 # 8slp
 
 Client for unpublished EightSleep API.

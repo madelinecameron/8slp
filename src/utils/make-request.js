@@ -9,17 +9,22 @@ async function makeRequest({
   body = null,
   contentType = `application/json`,
 }) {
-  const response = await fetch(`${EIGHT_SLEEP_API}/${url}`, {
-    method: method || `GET`,
-    headers: {
-      [`Content-Type`]: contentType,
-      [`Session-Token`]: token,
-      authority: `client-api.8slp.net`,
-    },
-    body,
-  })
+  let response
+  try {
+    response = await fetch(`${EIGHT_SLEEP_API}/${url}`, {
+      method: method || `GET`,
+      headers: {
+        [`Content-Type`]: contentType || `application/json`,
+        [`Session-Token`]: token,
+        authority: `client-api.8slp.net`,
+      },
+      body,
+    })
 
-  return response.json()
+    return response.json()
+  } catch (error) {
+    console.log("Error:", error)
+  }
 }
 
 module.exports = makeRequest

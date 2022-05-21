@@ -1,6 +1,6 @@
 {
   "name": "8slp",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "",
   "main": "src/base.js",
   "scripts": {
